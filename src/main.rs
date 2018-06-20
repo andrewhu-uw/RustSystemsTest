@@ -29,7 +29,7 @@ fn main() {
   // Create the word HT
   let mut wordmap : HashMap<&str, WordPositions> = HashMap::new();
   
-  wordmap = loop_and_insert(wordmap, &contents);
+  loop_and_insert(&mut wordmap, &contents);
   
   for (word, wp) in wordmap {
     println!("{} : {}", word, wp.num());
@@ -38,8 +38,8 @@ fn main() {
 
 // Reads `contents` and for each word, places a new position into the 
 // WordPositions for at the key corresponding to that word
-fn loop_and_insert<'a>(mut map : HashMap<&'a str, WordPositions>, 
-                    contents : &'a String) -> HashMap<&'a str, WordPositions>{
+fn loop_and_insert<'a>(map : &mut HashMap<&'a str, WordPositions>, 
+                    contents : &'a String) {
   let split: Vec<& str> =  contents
                             .split(|c:char| !c.is_alphanumeric())
                               // ^ returns a Split<'a>
@@ -63,8 +63,6 @@ fn loop_and_insert<'a>(mut map : HashMap<&'a str, WordPositions>,
       None => panic!("map should have already had a value"),
     };
   }
-  // By returning the HM, we prevent it from being dropped
-  map
 }
 
 fn read_file(pathstr : &str) -> Option<String> {
