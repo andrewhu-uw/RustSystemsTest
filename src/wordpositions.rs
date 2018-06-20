@@ -17,4 +17,8 @@ impl WordPositions {
   }
   
   pub fn num(&self) -> i32 { self.num }
+
+  pub fn add(&mut self, pos : usize) {
+    self.positions.push(pos);
+  }
 }
