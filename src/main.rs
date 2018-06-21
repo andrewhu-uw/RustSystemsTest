@@ -10,6 +10,18 @@ use std::collections::HashMap;
 use wordpositions::WordPositions;
 
 fn main() {
+  
+  // Create the word HT
+  let mut wordmap : HashMap<String, WordPositions> = HashMap::new();
+
+  do_work(&mut wordmap);
+
+  for (word, wp) in wordmap {
+    println!("{} : {}", word, wp.num());
+  }
+}
+
+fn do_work(wordmap : &mut HashMap<String, WordPositions>) {
   let args : Vec<String> = env::args().collect();
   if args.len() < 2 {
     println!("Enter a filename to read\nUsage: rs333 [FILE]");
@@ -26,43 +38,45 @@ fn main() {
   };
   println!("Contents of {} is:\n{}", filename, contents);
   
-  // Create the word HT
-  let mut wordmap : HashMap<&str, WordPositions> = HashMap::new();
-  
-  loop_and_insert(&mut wordmap, &contents);
-  
-  for (word, wp) in wordmap {
-    println!("{} : {}", word, wp.num());
-  }
+  // `contents` is moved _into_ the function
+  loop_and_insert(wordmap, contents);
+  // `contents` was already dropped at the end of loop_and_insert
+  // wordmap is not dropped because it is a reference
 }
 
 // Reads `contents` and for each word, places a new position into the 
 // WordPositions for at the key corresponding to that word
-fn loop_and_insert<'a>(map : &mut HashMap<&'a str, WordPositions>, 
-                    contents : &'a String) {
-  let split: Vec<& str> =  contents
-                            .split(|c:char| !c.is_alphanumeric())
-                              // ^ returns a Split<'a>
-                            .collect();  // collect() creates a new collection 
-                                         // that has its own lifetime
+
+// What our implementation wants to do is move all of the str contents of 
+// contents:String into the HashMap as keys, Unfortunately, we have to copy
+// the entire contents, once, but only once to create new encapsulated String
+// keys
+fn loop_and_insert(map : &mut HashMap<String, WordPositions>, 
+                    contents : String) {
+  // Create an iterator over the words
+  let split: std::str::SplitWhitespace =  contents.split_whitespace();
 
   // Look at each alphabetic word, and put its position in the corresponding
   // value
   for token in split {
-    // Do not record empty strings
-    if token.len() == 0 { continue; }
-    // Avoid null dereferences by inserting a new WP
+    // Empty Strings are already filtered out by split_whitespace()
+    //if token.len() == 0 { continue; }
+    
+    // Avoid get None's by inserting a new WP
     if !map.contains_key(token) {
-      map.insert(token, WordPositions::new());
+      map.insert(token.to_owned(), WordPositions::new());
     }
     // Add one to the number of instances of this word found
     match map.get_mut(token) {
       Some(wp) => { wp.inc();
+                                // TODO: Create a PositionIterator that splits 
+                                // on whitespace
                     wp.add(3);  // FIXME: append the actual position
                   },
       None => panic!("map should have already had a value"),
     };
   }
+  // `contents` is dropped here
 }
 
 fn read_file(pathstr : &str) -> Option<String> {
@@ -74,6 +88,8 @@ fn read_file(pathstr : &str) -> Option<String> {
     Ok(_file) => _file,
   };
   
+  // contents should be a String because we want a growable space that can be
+  // moved 
   let mut contents = String::new();
   match file.read_to_string(&mut contents) {
     Err(why) => panic!("Couldn't open {}: {}", path.display(),
@@ -84,6 +100,7 @@ fn read_file(pathstr : &str) -> Option<String> {
   if !contents.is_ascii() {
     return None
   }
-  // Because we are returning contents here, it is not destructed (Dropped)
+  // `contents` is not dropped here because it was moved into Some, which was
+  // then returned
   Some(contents)
 }
