@@ -16,15 +16,22 @@ fn main() {
   
   let args : Vec<String> = env::args().collect();
   if args.len() < 2 {
-    println!("Enter a filename to read\nUsage: rs333 [FILE]");
+    println!("Enter a filename or directory to read\nUsage: rs333 [FILE]|[DIR]");
     process::exit(1);
   }
-  let filename : &String = &args[1];
+  let input : &String = &args[1];
 
-  do_work(&mut wordmap, filename);
+  // TODO figure out if this is a file or directory
+  let is_file = true;
+  if is_file {
+    do_work(&mut wordmap, input);
 
-  for (word, wp) in wordmap {
-    println!("{} : {}", word, wp.num());
+    for (word, wp) in wordmap {
+      println!("{} : {}", word, wp.num());
+    }
+  } else {
+    // TODO iterate recursively over the directories, storing separate hash tables
+    // and giving each document a number
   }
 }
 
