@@ -22,7 +22,13 @@ fn main() {
   let input : &String = &args[1];
 
   // TODO figure out if this is a file or directory
-  let is_file = true;
+  let path = std::path::Path::new(input);
+  let is_file;
+  match path.metadata() {
+    Ok(meta) => is_file = meta.is_file(),
+    Err(_) => {println!("Error trying to evaluate path"); std::process::exit(-1)},
+  }
+  
   if is_file {
     do_work(&mut wordmap, input);
 
@@ -30,6 +36,7 @@ fn main() {
       println!("{} : {}", word, wp.num());
     }
   } else {
+    println!("This is a directory!");
     // TODO iterate recursively over the directories, storing separate hash tables
     // and giving each document a number
   }
