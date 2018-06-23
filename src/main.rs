@@ -13,22 +13,22 @@ fn main() {
   
   // Create the word HT
   let mut wordmap : HashMap<String, WordPositions> = HashMap::new();
-
-  do_work(&mut wordmap);
-
-  for (word, wp) in wordmap {
-    println!("{} : {}", word, wp.num());
-  }
-}
-
-fn do_work(wordmap : &mut HashMap<String, WordPositions>) {
+  
   let args : Vec<String> = env::args().collect();
   if args.len() < 2 {
     println!("Enter a filename to read\nUsage: rs333 [FILE]");
     process::exit(1);
   }
   let filename : &String = &args[1];
-  
+
+  do_work(&mut wordmap, filename);
+
+  for (word, wp) in wordmap {
+    println!("{} : {}", word, wp.num());
+  }
+}
+
+fn do_work(wordmap : &mut HashMap<String, WordPositions>, filename: &String) {
   // Collect the contents, quit if it's not ASCII
   let contents : String = match read_file(&filename) {
     None => { println!("File is not ASCII, exiting");
